@@ -5,7 +5,7 @@ async function main(){
         host: 'localhost',
         user: 'root',
         password: '',
-        database: 'khaireen',
+        database: 'test_db',
         waitForConnections: true,
         connectionLimit: 5,
         queueLimit: 0
@@ -18,7 +18,7 @@ async function main(){
             {'orders.no_wait':'N'}]}
     }
 
-    db.packing.find(query).projection({_id:1})
+    db.test_db.find(query).projection({_id:1})
         .join('orders',{},{
             'packing._id':'orders.packing_id',
             'orders.customer_to':12,

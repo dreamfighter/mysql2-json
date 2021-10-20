@@ -142,7 +142,7 @@ let Query = class{
         //var or = ""
         var wh = "1=1"
         var op = "AND";
-        const ff = function (selection, operator){
+        const ff = function (selection, operator, opPrefix){
             const func = ff;
 
             if(operator){
@@ -153,28 +153,24 @@ let Query = class{
                     continue;
                 }else if(q === '$or'){
                     if( Array.isArray(selection[q])){
-                        wh = `${wh} ${op} (1=0`;
+                        wh = `${wh} ${opPrefix?opPrefix:op} (1=0`;
                         selection[q].map(_or => {
                             func(_or,'OR');
                         });
                         wh = `${wh}) `;
                     }else{
-                        wh = `${wh} OR (1=0`;
-                        func(selection[q],'OR');
-                        wh = `${wh}) `;
+                        func(selection[q],'OR', 'OR');
                     }
 
                 }else if(q === '$and'){
                     if( Array.isArray(selection[q])){
-                        wh = `${wh} ${op} (1=0`;
+                        wh = `${wh} ${opPrefix?opPrefix:op} (1=1`;
                         selection[q].map(_and => {
                             func(_and,'AND');
                         });
                         wh = `${wh}) `;
                     }else{
-                        wh = `${wh} AND (1=1`;
-                        func(selection[q],'AND');
-                        wh = `${wh}) `;
+                        func(selection[q],'AND', 'AND');
                     }
                 }else if(selection[q] != null && typeof selection[q] == 'object' && ("$in" in selection[q] || "$nin" in selection[q] || "$gt" in selection[q] || "$lt" in selection[q])){
                     if(selection[q].$in){
@@ -189,7 +185,7 @@ let Query = class{
                         }
                     }
                     if(selection[q].$nin){
-                        var $nin = selection[q].$nin.map(d=>{
+                        const $nin = selection[q].$nin.map(d => {
                             params.push(d);
                             return '?';
                         });
@@ -211,13 +207,34 @@ let Query = class{
                         }
                     }
 
+                    if(selection[q].$gte){
+                        //console.log(selection[q]);
+                        var $gt = selection[q].$gte;
+                        this.params.push($gt);
+                        if(q.indexOf('.')>0){
+                            wh = `${wh} AND ${q} >= ? `;
+                        }else{
+                            wh = `${wh} AND ${this.table}.${q} >= ? `;
+                        }
+                    }
+
                     if(selection[q].$lt){
                         var $lt = selection[q].$lt
-                        params.push($lt);
+                        this.params.push($lt);
                         if(q.indexOf('.')>0){
-                            wh = `${wh} ${op} ${q} < ? `;
+                            wh = `${wh} AND ${q} < ? `;
                         }else{
-                            wh = `${wh} ${op} ${table}.${q} < ? `;
+                            wh = `${wh} AND ${this.table}.${q} < ? `;
+                        }
+                    }
+
+                    if(selection[q].$lte){
+                        var $lt = selection[q].$lte
+                        this.params.push($lt);
+                        if(q.indexOf('.')>0){
+                            wh = `${wh} AND ${q} <= ? `;
+                        }else{
+                            wh = `${wh} AND ${this.table}.${q} <= ? `;
                         }
                     }
 
@@ -254,166 +271,6 @@ let Query = class{
         ff(selection);
         this.where = `WHERE ${wh}`;
 
-        //this.where = `${this.where}`;
-
-        //this.conn.query(query)
-        return this;
-    }
-
-    select1(selection){
-        var or = ""
-        var and = "1=1"
-
-
-
-        for(const q in selection){
-            if(q === '$or'){
-                var pr = this.params;
-                selection[q].map(_or => {
-                    for(const v in _or){
-                        for(const r in _or[v]){
-                            if(r === '$regex'){
-                                const val = `${_or[v][r]}`;
-                                if(v.indexOf('.')>0){
-                                    or = `${or} OR REGEXP_LIKE(${v}, '${val.replace(/\//g, '')}') `;
-                                }else{
-                                    or = `${or} OR REGEXP_LIKE(${this.table}.${v}, '${val.replace(/\//g, '')}') `;
-                                }
-
-                                delete _or[v];
-                                _or.skip = true
-                            }
-                        }
-                        if(_or[v]){
-                            or = `${or} OR ${this.table}.${v}=?`;
-                            //console.log(pr);
-                            pr.push(_or[v]);
-
-                            delete _or[v];
-                            _or.skip = true
-                        }
-
-                        //console.log(`${v} = `);
-                    }
-
-                });
-                for(const v in selection[q]){
-                    if (v ==='groupBy' || selection[q][v].skip){
-                        continue;
-                    }
-                    if(v.indexOf('.')>0){
-                        or = `${or} OR ${v}=? `;
-                    }else{
-                        or = `${or} OR ${this.table}.${v}=? `;
-                    }
-
-
-                    this.params.push(selection[q][v]);
-
-                }
-            }else if(q === '$and'){
-                for(const v in selection[q]){
-                    if (v ==='groupBy'){
-                        continue;
-                    }
-
-                    if(selection[q][v]['$regex']){
-                        const val = `${selection[q][v]['$regex']}`;
-                        and = `${and} AND REGEXP_LIKE(${v}, '${val.replace(/\//g, '')}') `;
-                    }else{
-                        if(v.indexOf('.')>0){
-                            and = `${and} AND ${v}=? `;
-                        }else{
-                            and = `${and} AND ${this.table}.${v}=? `;
-                        }
-                    }
-
-                    this.params.push(selection[q][v]);
-                }
-            }else{
-                if (q ==='groupBy'){
-                    continue;
-                }
-                //console.log(selection[q]);
-                if(selection[q] != null && typeof selection[q] == 'object' && ("$in" in selection[q] || "$nin" in selection[q] || "$gt" in selection[q] || "$lt" in selection[q])){
-                    if(selection[q].$in){
-                        var $in = selection[q].$in.map(d=>{
-                            this.params.push(d);
-                            return '?';
-                        });
-                        if(q.indexOf('.')>0){
-                            and = `${and} AND ${q} IN (${$in}) `;
-                        }else{
-                            and = `${and} AND ${this.table}.${q} IN (${$in}) `;
-                        }
-                    }
-                    if(selection[q].$nin){
-                        var $nin = selection[q].$nin.map(d=>{
-                            this.params.push(d);
-                            return '?';
-                        });
-                        if(q.indexOf('.')>0){
-                            and = `${and} AND ${q} NOT IN (${$nin}) `;
-                        }else{
-                            and = `${and} AND ${this.table}.${q} NOT IN (${$nin}) `;
-                        }
-                    }
-
-                    if(selection[q].$gt){
-                        //console.log(selection[q]);
-                        var $gt = selection[q].$gt;
-                        this.params.push($gt);
-                        if(q.indexOf('.')>0){
-                            and = `${and} AND ${q} > ? `;
-                        }else{
-                            and = `${and} AND ${this.table}.${q} > ? `;
-                        }
-                    }
-
-                    if(selection[q].$lt){
-                        var $lt = selection[q].$lt
-                        this.params.push($lt);
-                        if(q.indexOf('.')>0){
-                            and = `${and} AND ${q} < ? `;
-                        }else{
-                            and = `${and} AND ${this.table}.${q} < ? `;
-                        }
-                    }
-
-                }else if(selection[q] && selection[q]['$ne']){
-                    if(q.indexOf('.')>0){
-                        and = `${and} AND ${q}<>? `;
-
-                        this.params.push(selection[q]['$ne']);
-                    }else{
-                        and = `${and} AND ${this.table}.${q}<>? `;
-
-                        this.params.push(selection[q]['$ne']);
-                    }
-                }else{
-                    if(selection[q] && selection[q]['$regex']){
-                        const val = `^${selection[q]['$regex']}`;
-                        and = `${and} AND REGEXP_LIKE(${q}, ?) `;
-                        this.params.push(val.replace(/\//g, ''));
-                    }else if(q.indexOf('.')>0){
-                        and = `${and} AND ${q}=? `;
-
-                        this.params.push(selection[q]);
-                    }else{
-                        and = `${and} AND ${this.table}.${q}=? `;
-
-                        this.params.push(selection[q]);
-                    }
-                }
-
-            }
-
-        }
-        if(or !== ""){
-
-            or = `AND ( 1=0 ${or})`
-        }
-        this.where = `WHERE ${and} ${or}`;
         //this.where = `${this.where}`;
 
         //this.conn.query(query)
