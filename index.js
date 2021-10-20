@@ -172,7 +172,8 @@ let Query = class{
                     }else{
                         func(selection[q],'AND', 'AND');
                     }
-                }else if(selection[q] != null && typeof selection[q] == 'object' && ("$in" in selection[q] || "$nin" in selection[q] || "$gt" in selection[q] || "$lt" in selection[q])){
+                }else if(selection[q] != null && typeof selection[q] == 'object' &&
+                    ("$in" in selection[q] || "$nin" in selection[q] || "$gt" in selection[q] || "$lt" in selection[q] || "$gte" in selection[q] || "$lte" in selection[q])){
                     if(selection[q].$in){
                         var $in = selection[q].$in.map(d=>{
                             params.push(d);
@@ -210,31 +211,31 @@ let Query = class{
                     if(selection[q].$gte){
                         //console.log(selection[q]);
                         var $gt = selection[q].$gte;
-                        this.params.push($gt);
+                        params.push($gt);
                         if(q.indexOf('.')>0){
                             wh = `${wh} AND ${q} >= ? `;
                         }else{
-                            wh = `${wh} AND ${this.table}.${q} >= ? `;
+                            wh = `${wh} AND ${table}.${q} >= ? `;
                         }
                     }
 
                     if(selection[q].$lt){
                         var $lt = selection[q].$lt
-                        this.params.push($lt);
+                        params.push($lt);
                         if(q.indexOf('.')>0){
                             wh = `${wh} AND ${q} < ? `;
                         }else{
-                            wh = `${wh} AND ${this.table}.${q} < ? `;
+                            wh = `${wh} AND ${table}.${q} < ? `;
                         }
                     }
 
                     if(selection[q].$lte){
                         var $lt = selection[q].$lte
-                        this.params.push($lt);
+                        params.push($lt);
                         if(q.indexOf('.')>0){
                             wh = `${wh} AND ${q} <= ? `;
                         }else{
-                            wh = `${wh} AND ${this.table}.${q} <= ? `;
+                            wh = `${wh} AND ${table}.${q} <= ? `;
                         }
                     }
 
