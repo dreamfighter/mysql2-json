@@ -1,10 +1,5 @@
 ## mysql2-json
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/sidorares/node-mysql2.svg)](https://greenkeeper.io/)
-[![NPM Version][npm-image]][npm-url]
-[![Node.js Version][node-version-image]][node-version-url]
-[![License][license-image]][license-url]
-
 > MySQL2 wrapper for Node.js with json interface. Supports prepared transactional
 
 ## Installing with [npm](http://npmjs.org/)
