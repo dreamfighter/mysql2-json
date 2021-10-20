@@ -1,5 +1,5 @@
 {
-  "name": "mysql2-json",
+  "name": "mysql2-json-sql",
   "version": "1.0.0",
   "description": "The idea is migrating from nosql db to relational db without any changes,\n using json as query and result",
   "main": "index.js",
@@ -13,6 +13,7 @@
   "keywords": [
     "mysql2",
     "mysql2-json",
+    "mysql2-json-sql",
     "json mysql",
     "database"
   ],
