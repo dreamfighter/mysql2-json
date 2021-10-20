@@ -5,7 +5,7 @@ async function main(){
         host: 'localhost',
         user: 'root',
         password: '',
-        database: 'test',
+        database: 'khaireen',
         waitForConnections: true,
         connectionLimit: 5,
         queueLimit: 0
@@ -14,8 +14,8 @@ async function main(){
     var query = {
         status:'PENDING',
         'orders.no_wait':'N',
-        $or:[{_id:12},{status:'PENDING'},
-            {'orders.no_wait':'N'}]
+        $and:{$or:[{_id:12},{status:'PENDING'},
+            {'orders.no_wait':'N'}]}
     }
 
     db.packing.find(query).projection({_id:1})

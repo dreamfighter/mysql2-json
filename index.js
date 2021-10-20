@@ -139,7 +139,7 @@ let Query = class{
     select(selection){
         const table = this.table;
         const params = this.params;
-        var or = ""
+        //var or = ""
         var wh = "1=1"
         var op = "AND";
         const ff = function (selection, operator){
@@ -159,13 +159,23 @@ let Query = class{
                         });
                         wh = `${wh}) `;
                     }else{
+                        wh = `${wh} OR (1=0`;
                         func(selection[q],'OR');
+                        wh = `${wh}) `;
                     }
 
                 }else if(q === '$and'){
-                    selection[q].map(_or => {
-                        func(_or,'AND');
-                    });
+                    if( Array.isArray(selection[q])){
+                        wh = `${wh} ${op} (1=0`;
+                        selection[q].map(_and => {
+                            func(_and,'AND');
+                        });
+                        wh = `${wh}) `;
+                    }else{
+                        wh = `${wh} AND (1=1`;
+                        func(selection[q],'AND');
+                        wh = `${wh}) `;
+                    }
                 }else if(selection[q] != null && typeof selection[q] == 'object' && ("$in" in selection[q] || "$nin" in selection[q] || "$gt" in selection[q] || "$lt" in selection[q])){
                     if(selection[q].$in){
                         var $in = selection[q].$in.map(d=>{
