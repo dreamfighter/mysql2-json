@@ -1,0 +1,28 @@
+{
+  "name": "mysql2-json",
+  "version": "1.0.0",
+  "description": "The idea is migrating from nosql db to relational db without any changes,\n using json as query and result",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dreamfighter/mysql2-json.git"
+  },
+  "keywords": [
+    "mysql2",
+    "mysql2-json",
+    "json mysql",
+    "database"
+  ],
+  "dependencies": {
+    "properties-reader": "^2.1.0"
+  },
+  "author": "Fitra Adinugraha <fitra.adinugraha@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dreamfighter/mysql2-json/issues"
+  },
+  "homepage": "https://github.com/dreamfighter/mysql2-json#readme"
+}
