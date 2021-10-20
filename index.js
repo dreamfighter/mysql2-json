@@ -613,15 +613,18 @@ function format(data){
 }
 
 const datasource = {};
-
+module.exports.datasource = datasource;
 module.exports = (conn, table) => {
     if(table){
-        const db = {};
-        db.conn = conn;
-        db[table] = new smt(conn, table);
-        datasource[conn.config.connectionConfig.database] = db;
-
-        return datasource;
+        if(!datasource[conn.config.connectionConfig.database]){
+            const db = {};
+            db.conn = conn;
+            db[table] = new smt(conn, table);
+            datasource[conn.config.connectionConfig.database] = db;
+        }else{
+            datasource[conn.config.connectionConfig.database][table] = new smt(conn, table);
+        }
+        return datasource[conn.config.connectionConfig.database][table];
     }else{
         const db = {};
         db.conn = mysql.createPool(conn);
