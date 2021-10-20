@@ -1,11 +1,11 @@
-## mysql2-json
+## mysql2-json-sql
 
 > MySQL2 wrapper for Node.js with json interface. Supports prepared transactional
 
 ## Installing with [npm](http://npmjs.org/)
 
 ```
-npm install mysql2-json
+npm install mysql2-json-sql
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install mysql2-json
 ```js
 // Include mysql2-json
 // for example: schema test_db contains table test
-const mysql = require('mysql2-json');
+const mysql = require('mysql2-json-sql');
 
 const db = mysql({
         host: 'localhost',
