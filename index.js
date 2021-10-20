@@ -141,10 +141,10 @@ let Query = class{
         const params = this.params;
         //var or = ""
         var wh = "1=1"
-        var op = "AND";
         const ff = function (selection, operator, opPrefix){
             const func = ff;
 
+            var op = "AND";
             if(operator){
                 op = operator;
             }
