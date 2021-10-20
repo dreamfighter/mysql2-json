@@ -61,7 +61,7 @@ db.test_db.test.find({_id:12},(err,result)=>{
 }]
 ```
 
-##Inserting documents
+## Inserting documents
 
 ```js
 var data = { _id:13, name: 'world'};
@@ -78,7 +78,7 @@ db.test_db.test.insert([{ _id: 14, name: 'hello' }, { _id: 15, name:'word' }], f
   // newDocs is an array with these documents, augmented with their _id
 });
 ```
-##finding data
+## Finding data
 
 ```js
 // Finding all planets in the solar system
