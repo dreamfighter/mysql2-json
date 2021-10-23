@@ -560,22 +560,25 @@ let smt = class{
     transaction(trx,clbk){
         const promisePool = this.conn.promise();
 
-        const tableName = this.table;
-        var connn;
+        //const tableName = this.table;
+        let connn;
         promisePool.getConnection()
             .then(connection => {
                 connn = connection;
                 return connection.query('START TRANSACTION');
             })
             .then( () => {
-                return trx(connn);
+                const tables = {};
+                for(const t in datasource[connn.config.database]){
+                    tables[t] = new smt(connn, t);
+                }
+                return trx(connn,tables);
                 // do queries inside transaction
-            })
-            .then( () => {
-                console.log('committed!');
-                clbk(null,{});
-                return connn.query('COMMIT');
-            }).catch(err=>{
+            }).then( () => {
+            console.log('committed!');
+            clbk(null,{});
+            return connn.query('COMMIT');
+        }).catch(err=>{
             console.log('rollback!');
             clbk(err,{});
             connn.query('ROLLBACK');
@@ -616,34 +619,39 @@ const datasource = {};
 module.exports.datasource = datasource;
 module.exports = (conn, table) => {
     if(table){
-        if(!datasource[conn.config.connectionConfig.database]){
-            const db = {};
-            db.conn = conn;
-            db[table] = new smt(conn, table);
-            datasource[conn.config.connectionConfig.database] = db;
+        let dbStr = conn.config.connectionConfig;
+        if(conn.config.connectionConfig){
+            dbStr = conn.config.connectionConfig.database;
         }else{
-            datasource[conn.config.connectionConfig.database][table] = new smt(conn, table);
+            dbStr = conn.config.database;
         }
-        return datasource[conn.config.connectionConfig.database][table];
+        if(!datasource[dbStr]){
+            const db = {};
+            db[table] = new smt(conn, table);
+            datasource[dbStr] = db;
+        }else{
+            datasource[dbStr][table] = new smt(conn, table);
+        }
+        return datasource[dbStr][table];
     }else{
         const db = {};
-        db.conn = mysql.createPool(conn);
+        const conn = mysql.createPool(conn);
 
         db.tables = async function(){
-            const connPromise = db.conn.promise()
+            const connPromise = conn.promise()
             const [rows,fields] = await connPromise.query('SHOW TABLES');
 
             rows.map(d=> {
-                db[d[fields[0].name]] = new smt(db.conn, d[fields[0].name]);
+                db[d[fields[0].name]] = new smt(conn, d[fields[0].name]);
             });
             return db;
         }
 
         db.table = function(name){
-            db[name] = new smt(db.conn, name);
+            db[name] = new smt(conn, name);
             return db[name];
         }
-
+        //datasource[conn.database].conn = conn;
         datasource[conn.database] = db;
         return datasource;
     }
