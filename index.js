@@ -249,6 +249,16 @@ let Query = class{
 
                         params.push(selection[q]['$ne']);
                     }
+                }else if(selection[q] && (selection[q]['$null']===1 || selection[q]['$null']===0)){
+                    let $null = 'is not null';
+                    if(selection[q]['$null']===1){
+                        $null = 'is null';
+                    }
+                    if(q.indexOf('.')>0){
+                        wh = `${wh} ${op} ${q} ${$null}  `;
+                    }else{
+                        wh = `${wh} ${op} ${table}.${q} ${$null}`;
+                    }
                 }else if(selection[q] && selection[q]['$regex']){
                     const val = `^${selection[q]['$regex']}`;
                     if(q.indexOf('.')>0){
@@ -635,20 +645,20 @@ module.exports = (conn, table) => {
         return datasource[dbStr][table];
     }else{
         const db = {};
-        const conn = mysql.createPool(conn);
+        const connDB = mysql.createPool(conn);
 
         db.tables = async function(){
-            const connPromise = conn.promise()
+            const connPromise = connDB.promise()
             const [rows,fields] = await connPromise.query('SHOW TABLES');
 
             rows.map(d=> {
-                db[d[fields[0].name]] = new smt(conn, d[fields[0].name]);
+                db[d[fields[0].name]] = new smt(connDB, d[fields[0].name]);
             });
             return db;
         }
 
         db.table = function(name){
-            db[name] = new smt(conn, name);
+            db[name] = new smt(connDB, name);
             return db[name];
         }
         //datasource[conn.database].conn = conn;
