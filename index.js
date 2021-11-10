@@ -16,6 +16,7 @@ let Query = class{
         this._skip = "";
         this.where = "";
         this.params = [];
+        this.formating = null;
     }
 
     count(selection){
@@ -445,14 +446,20 @@ let Query = class{
         //});
     }
 
+    format(){
+        this.formating = format;
+        return this;
+    }
+
     exec(callback){
 
         this.query = `SELECT ${this._projection.join(',')} FROM ${this.table} ${this._join} ${this.where} ${this.group} ${this.srt} ${this._skip} ${this._limit}`;
         //console.log(this.query);
-        var q = this.query;
-        var p = this.params;
-        var _c = this._count;
-        var _f = this._findOne;
+        const q = this.query;
+        const p = this.params;
+        const _c = this._count;
+        const _f = this._findOne;
+        const _formating = this.formating;
         //this.conn.getConnection(function(err, conn) {
         //if(!err){
         console.log(q);
@@ -471,6 +478,9 @@ let Query = class{
         }else if(_f){
             return this.conn.query(q,p, (err,result)=>{
                 if(result){
+                    if(_formating!=null){
+                        return callback(err,_formating(result[0]));
+                    }
                     return callback(err,result[0]);
                 }else{
                     console.log(err);
@@ -480,6 +490,9 @@ let Query = class{
         }else{
             return this.conn.query(q,p, (err,result)=>{
                 if(result){
+                    if(_formating!=null){
+                        return callback(err,_formating(result));
+                    }
                     return callback(err,result);
                 }else{
                     console.log(err);
