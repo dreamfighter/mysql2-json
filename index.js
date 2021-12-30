@@ -104,10 +104,22 @@ let Query = class{
         var alias = joinTable;
         var joinTableName = joinTable;
         if(typeof joinTable !== 'string'){
-            for(const q in joinTable){
-                alias = joinTable[q];
-                joinTableName = q;
+            if(joinTable.table){
+                joinTableName = `${joinTable.sql}`;
+                alias = joinTable.table;
+            }else{
+                for(const q in joinTable){
+                    if(q!=='sql'){
+                        alias = q;
+                        joinTableName = `(${joinTable[q]})`;
+                    }else{
+                        joinTableName = `(${joinTable.sql})`;
+                        alias = `${joinTable.alias}`;
+                    }
+
+                }
             }
+
         }
 
         if(proj){
@@ -449,6 +461,13 @@ let Query = class{
     format(){
         this.formating = format;
         return this;
+    }
+
+    build(){
+        return {
+            sql:`SELECT ${this._projection.join(',')} FROM ${this.table} ${this._join} ${this.where} ${this.group} ${this.srt} ${this._skip} ${this._limit}`,
+            params:this.params, count:this._count, findOne:this._findOne, table:this.table
+        };
     }
 
     exec(callback){
