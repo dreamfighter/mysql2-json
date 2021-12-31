@@ -16,6 +16,7 @@ let Query = class{
         this._skip = "";
         this.where = "";
         this.params = [];
+        this.join_params = [];
         this.formating = null;
     }
 
@@ -67,9 +68,22 @@ let Query = class{
         var alias = joinTable;
         var joinTableName = joinTable;
         if(typeof joinTable !== 'string'){
-            for(const q in joinTable){
-                alias = joinTable[q];
-                joinTableName = q;
+            if(joinTable.table){
+                joinTableName = `(${joinTable.sql})`;
+                alias = joinTable.table;
+                this.join_params = joinTable.params;
+
+            }else{
+                for(const q in joinTable){
+                    if(q!=='sql'){
+                        alias = q;
+                        joinTableName = `(${joinTable[q]})`;
+                    }else{
+                        joinTableName = `(${joinTable.sql})`;
+                        alias = `${joinTable.alias}`;
+                    }
+
+                }
             }
         }
 
@@ -105,8 +119,10 @@ let Query = class{
         var joinTableName = joinTable;
         if(typeof joinTable !== 'string'){
             if(joinTable.table){
-                joinTableName = `${joinTable.sql}`;
+                joinTableName = `(${joinTable.sql})`;
                 alias = joinTable.table;
+                this.join_params = joinTable.params;
+
             }else{
                 for(const q in joinTable){
                     if(q!=='sql'){
@@ -479,6 +495,11 @@ let Query = class{
         const _c = this._count;
         const _f = this._findOne;
         const _formating = this.formating;
+        if(this.join_params.length>0){
+            this.join_params.map((data,i)=>{
+                p.splice(i, 0, data);
+            });
+        }
         //this.conn.getConnection(function(err, conn) {
         //if(!err){
         console.log(q);
