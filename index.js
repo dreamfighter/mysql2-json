@@ -15,6 +15,7 @@ let Query = class{
         this._limit = "";
         this._skip = "";
         this.where = "";
+        this._having = "";
         this.params = [];
         this.join_params = [];
         this.formating = null;
@@ -27,7 +28,7 @@ let Query = class{
     }
 
     projection(pro){
-        var p = ['$max','$min','$sum','$avg','$count'];
+        const p = ['$max','$min','$sum','$avg','$count'];
         for(const q in pro){
             if(p.includes(q)){
                 for(const v in pro[q]){
@@ -343,6 +344,25 @@ let Query = class{
         return this;
     }
 
+    having(hv){
+        const h = [];
+        const p = ['$max','$min','$sum','$avg','$count'];
+        for(const q in hv){
+            if(p.includes(q)){
+                for(const v in hv[q]){
+                    if(v.indexOf('.')>0){
+                        h.push(`${q.replace('$', '')}(${v}) = ?`);
+                    }else{
+                        h.push(`${q.replace('$', '')}(${this.table}.${v}) = ?`);
+                    }
+                    this.params.push(hv[q][v]);
+                }
+            }
+        }
+        this._having = `HAVING ${h.join(' AND ')}`;
+        return this;
+    }
+
     skip(n){
         if(n<0){
             n = 0;
@@ -481,14 +501,14 @@ let Query = class{
 
     build(){
         return {
-            sql:`SELECT ${this._projection.join(',')} FROM ${this.table} ${this._join} ${this.where} ${this.group} ${this.srt} ${this._skip} ${this._limit}`,
+            sql:`SELECT ${this._projection.join(',')} FROM ${this.table} ${this._join} ${this.where} ${this.group} ${this._having} ${this.srt} ${this._skip} ${this._limit}`,
             params:this.params, count:this._count, findOne:this._findOne, table:this.table
         };
     }
 
     exec(callback){
 
-        this.query = `SELECT ${this._projection.join(',')} FROM ${this.table} ${this._join} ${this.where} ${this.group} ${this.srt} ${this._skip} ${this._limit}`;
+        this.query = `SELECT ${this._projection.join(',')} FROM ${this.table} ${this._join} ${this.where} ${this.group} ${this._having} ${this.srt} ${this._skip} ${this._limit}`;
         //console.log(this.query);
         const q = this.query;
         const p = this.params;
