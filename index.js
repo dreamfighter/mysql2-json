@@ -297,6 +297,14 @@ let Query = class{
                         wh = `${wh} ${op} REGEXP_LIKE(${table}.${q}, ?) `;
                     }
                     params.push(val.replace(/\//g, ''));
+                }else if(selection[q] && selection[q]['$like']){
+                    const val = `${selection[q]['$like']}`;
+                    if(q.indexOf('.')>0){
+                        wh = `${wh} ${op} ${q} LIKE ? `;
+                    }else{
+                        wh = `${wh} ${op} ${table}.${q} LIKE ? `;
+                    }
+                    params.push(val.replace(/\//g, ''));
                 }else if(q.indexOf('.')>0){
                     wh = `${wh} ${op} ${q}=? `;
 
