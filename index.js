@@ -75,10 +75,8 @@ let Query = class{
                 this.join_params = joinTable.params;
 
             }else if(joinTable.table && joinTable.alias){
-                joinTableName = `${joinTable.sql}`;
+                joinTableName = `${joinTable.table}`;
                 alias = joinTable.alias;
-                this.join_params = joinTable.params;
-
             }else{
                 for(const q in joinTable){
                     if(q!=='sql'){
@@ -130,10 +128,8 @@ let Query = class{
                 this.join_params = joinTable.params;
 
             }else if(joinTable.table && joinTable.alias){
-                joinTableName = `${joinTable.sql}`;
+                joinTableName = `${joinTable.table}`;
                 alias = joinTable.alias;
-                this.join_params = joinTable.params;
-
             }else{
                 for(const q in joinTable){
                     if(q!=='sql'){
