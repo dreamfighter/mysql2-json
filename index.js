@@ -69,9 +69,14 @@ let Query = class{
         var alias = joinTable;
         var joinTableName = joinTable;
         if(typeof joinTable !== 'string'){
-            if(joinTable.table){
+            if(joinTable.table && joinTable.sql){
                 joinTableName = `(${joinTable.sql})`;
                 alias = joinTable.table;
+                this.join_params = joinTable.params;
+
+            }else if(joinTable.table && joinTable.alias){
+                joinTableName = `${joinTable.sql}`;
+                alias = joinTable.alias;
                 this.join_params = joinTable.params;
 
             }else{
@@ -122,6 +127,11 @@ let Query = class{
             if(joinTable.table){
                 joinTableName = `(${joinTable.sql})`;
                 alias = joinTable.table;
+                this.join_params = joinTable.params;
+
+            }else if(joinTable.table && joinTable.alias){
+                joinTableName = `${joinTable.sql}`;
+                alias = joinTable.alias;
                 this.join_params = joinTable.params;
 
             }else{
