@@ -529,7 +529,7 @@ let Query = class{
         const _c = this._count;
         const _f = this._findOne;
         const _formating = this.formating;
-        if(this.join_params.length>0){
+        if(this.join_params && this.join_params.length>0){
             this.join_params.map((data,i)=>{
                 p.splice(i, 0, data);
             });
