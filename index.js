@@ -122,7 +122,7 @@ let Query = class{
         var alias = joinTable;
         var joinTableName = joinTable;
         if(typeof joinTable !== 'string'){
-            if(joinTable.table){
+            if(joinTable.table && joinTable.sql){
                 joinTableName = `(${joinTable.sql})`;
                 alias = joinTable.table;
                 this.join_params = joinTable.params;
