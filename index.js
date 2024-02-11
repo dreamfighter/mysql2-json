@@ -520,6 +520,10 @@ let Query = class{
         };
     }
 
+    async(){
+        return this.exec();
+    }
+
     exec(callback){
 
         this.query = `SELECT ${this._projection.join(',')} FROM ${this.table} ${this._join} ${this.where} ${this.group} ${this._having} ${this.srt} ${this._skip} ${this._limit}`;
