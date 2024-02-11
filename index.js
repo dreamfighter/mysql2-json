@@ -539,43 +539,86 @@ let Query = class{
         console.log(q);
         console.log(JSON.stringify(p));
         //console.log(_c);
-        if(_c){
-            return this.conn.query(q,p, (err,result)=>{
-                if(result && result.length>0){
-                    return callback(err,result[0].count);
-                }else{
-                    console.log(err);
-                    return callback(err,0);
-                }
-
-            });
-        }else if(_f){
-            return this.conn.query(q,p, (err,result)=>{
-                if(result){
-                    if(_formating!=null){
-                        return callback(err,_formating(result[0]));
+        if(callback){
+            if(_c){
+                return this.conn.query(q,p, (err,result)=>{
+                    if(result && result.length>0){
+                        return callback(err,result[0].count);
+                    }else{
+                        console.log(err);
+                        return callback(err,0);
                     }
-                    return callback(err,result[0]);
-                }else{
-                    console.log(err);
-                    return callback(err,{});
-                }
-            });
+    
+                });
+            }else if(_f){
+                return this.conn.query(q,p, (err,result)=>{
+                    if(result){
+                        if(_formating!=null){
+                            return callback(err,_formating(result[0]));
+                        }
+                        return callback(err,result[0]);
+                    }else{
+                        console.log(err);
+                        return callback(err,{});
+                    }
+                });
+            }else{
+                return this.conn.query(q,p, (err,result)=>{
+                    if(result){
+                        if(_formating!=null){
+                            return callback(err,_formating(result));
+                        }
+                        return callback(err,result);
+                    }else{
+                        console.log(err);
+                        return callback(err,{});
+                    }
+    
+                });
+    
+            }
         }else{
-            return this.conn.query(q,p, (err,result)=>{
-                if(result){
-                    if(_formating!=null){
-                        return callback(err,_formating(result));
-                    }
-                    return callback(err,result);
+            return new Promise((resolve,reject)=>{
+                if(_c){
+                    return this.conn.query(q,p, (err,result)=>{
+                        if(result && result.length>0){
+                            return resolve(result[0].count);
+                        }else{
+                            console.log(err);
+                            return reject(err);
+                        }
+        
+                    });
+                }else if(_f){
+                    return this.conn.query(q,p, (err,result)=>{
+                        if(result){
+                            if(_formating!=null){
+                                return resolve(_formating(result[0]));
+                            }
+                            return resolve(result[0]);
+                        }else{
+                            console.log(err);
+                            return reject(err);
+                        }
+                    });
                 }else{
-                    console.log(err);
-                    return callback(err,{});
+                    return this.conn.query(q,p, (err,result)=>{
+                        if(result){
+                            if(_formating!=null){
+                                return resolve(_formating(result));
+                            }
+                            return resolve(result);
+                        }else{
+                            console.log(err);
+                            return reject(err);
+                        }
+        
+                    });
+        
                 }
-
             });
-
         }
+        
     }
 }
 
