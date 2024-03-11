@@ -437,8 +437,11 @@ let Query = class{
         }
         //this.conn.getConnection(function(err, conn) {
 
-        console.log(q);
-        console.log(values);
+        if(process.env.LOGGING === 'info'){
+            console.log(q);
+            console.log(values);
+        }
+        
         let c = callback;
         return this.conn.query(q, values,(error, results) => {
             if(error){
@@ -480,12 +483,14 @@ let Query = class{
 
         let q = `UPDATE ${this.table} SET ${sets.join(',')} ${this.where}`;
         //this.conn.getConnection(function(err, conn) {
-        console.log(q);
-        console.log(values);
+        if(process.env.LOGGING === 'info'){
+            console.log(q);
+            console.log(values);
+        }
         let c = callback;
         return this.conn.query(q, values,(error, results) => {
             if(error){
-                console.log(error);
+                console.error(error);
             }
             c(error,results);
         });
@@ -496,8 +501,10 @@ let Query = class{
         var p = this.params;
         let q = `DELETE FROM ${this.table} ${this.where}`;
         //this.conn.getConnection(function(err, conn) {
-        console.log(q);
-        console.log(p);
+        if(process.env.LOGGING === 'info'){
+            console.log(q);
+            console.log(p);
+        }
         let c = callback;
         return this.conn.query(q, p,(error, results) => {
             if(error){
@@ -539,9 +546,10 @@ let Query = class{
             });
         }
         //this.conn.getConnection(function(err, conn) {
-        //if(!err){
-        console.log(q);
-        console.log(JSON.stringify(p));
+        if(process.env.LOGGING === 'info'){
+            console.log(q);
+            console.log(JSON.stringify(p));
+        }
         //console.log(_c);
         if(callback){
             if(_c){
