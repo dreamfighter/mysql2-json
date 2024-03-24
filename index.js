@@ -394,7 +394,20 @@ let Query = class{
     }
 
     insert(data,callback){
-        return this.insertQ(data,callback);
+        if(callback){
+            return this.insertQ(data,callback);
+        }else{
+            return new Promise((resolve,reject)=>{
+                this.insertQ(data,(error,results)=>{
+                    if(error){
+                        reject(error);
+                    }else{
+                        resolve(results);
+                    }
+                    
+                });
+            });
+        }
     }
 
     update(data,callback){
