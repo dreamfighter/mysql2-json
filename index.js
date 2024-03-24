@@ -402,7 +402,7 @@ let Query = class{
             return this.updateQ(data,callback);
         }else{
             return new Promise((resolve,reject)=>{
-                this.updateQ(data,(callback)=>{
+                this.updateQ(data,(error,results)=>{
                     if(error){
                         reject(error);
                     }else{
