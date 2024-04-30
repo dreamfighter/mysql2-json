@@ -24,7 +24,10 @@ let Query = class{
     count(selection){
         this._count = true;
         this._projection=['count(*) count'];
-        return this.select(selection);
+        if(selection){
+            return this.select(selection);
+        }
+        return this;
     }
 
     projection(pro){
@@ -390,6 +393,12 @@ let Query = class{
             this._limit = `,${n}`;
         }
 
+        return this;
+    }
+
+    nolimit(n){
+        this._limit = '';
+        this._skip = '';
         return this;
     }
 
