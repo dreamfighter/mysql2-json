@@ -838,8 +838,9 @@ module.exports = (conn, table) => {
             db[name] = new smt(connDB, name);
             return db[name];
         }
-
-        db.query = function(sql,params){
+        //datasource[conn.database].conn = conn;
+        datasource[conn.database] = db;
+        datasource['query'] = function(sql,params){
             return new Promise((resolve, reject) => {
                 connDB.query(sql,params, (err,result)=>{
                     if(result && result.length>0){
@@ -850,8 +851,6 @@ module.exports = (conn, table) => {
                 });
             });
         }
-        //datasource[conn.database].conn = conn;
-        datasource[conn.database] = db;
         return datasource;
     }
 };
