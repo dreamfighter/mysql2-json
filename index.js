@@ -30,6 +30,45 @@ let Query = class{
         return this;
     }
 
+    pagination(size,page){
+        if(!page){
+            page = 1;
+        }
+        page = page - 1;
+        if(!size){
+            size = 10;
+        }
+        const first = page * size;
+
+        const mainQuery = this.skip(first).limit(size).async();
+        this.nolimit();
+        let builder = this.build();
+        let countQuery = new Promise((resolve,reject)=>{
+            const sql = `select count(*) count from (${builder.sql}) as c`;
+            if(process.env.LOGGING === 'info'){
+                console.log(sql);
+                console.log(JSON.stringify(builder.params));
+            }
+            this.conn.query(sql,builder.params,(error, results) => {
+                if(error){
+                    reject(error);
+                }else{
+                    resolve(results);
+                }
+
+            });
+        });
+
+        return Promise.all([mainQuery,countQuery]).then((v)=>{
+            const countResult = v[1][0];
+            const count =  Math.ceil(countResult.count / size);
+            return {data:v[0],count:count,total:countResult.count};
+        }).catch(error => {
+            console.log(error);
+            return {data:[],count:0,total:0};
+        });
+    }
+
     projection(pro){
         const p = ['$max','$min','$sum','$avg','$count'];
         for(const q in pro){
@@ -106,15 +145,15 @@ let Query = class{
             //this._projection = `${this._projection},${p.join(',')}`;
         }
 
-        var on = '';
+        let on = '';
         if(!ref){
             on = `${this.table}._id=${alias}.${this.table}_id`;
         }else{
-            var p = [];
+            let p = [];
             for(const q in ref){
                 p.push(`${q}=${ref[q]}`);
             }
-            on = p.join(' AND ')
+            on = p.join(' AND ');
         }
 
         this._join = `${this._join} JOIN ${joinTableName} ${alias} ON(${on})`;
@@ -160,7 +199,7 @@ let Query = class{
             //this._projection = `${this._projection},${p.join(',')}`;
         }
 
-        var on = '';
+        let on = '';
         if(!ref){
             on = `${this.table}._id=${alias}.${this.table}_id`;
         }else{
@@ -179,11 +218,11 @@ let Query = class{
         const table = this.table;
         const params = this.params;
         //var or = ""
-        var wh = "1=1"
+        let wh = "1=1"
         const ff = function (selection, operator, opPrefix){
             const func = ff;
 
-            var op = "AND";
+            let op = "AND";
             if(operator){
                 op = operator;
             }
