@@ -375,7 +375,7 @@ let Query = class{
     }
 
     sort(s){
-        var ss = [];
+        let ss = [];
         for(const q in s){
             if(s[q] === 1){
                 if(q.indexOf('.')>0){
@@ -403,15 +403,34 @@ let Query = class{
     having(hv){
         const h = [];
         const p = ['$max','$min','$sum','$avg','$count'];
+        const operators = {
+            '$gt':'>',
+            '$lt':'<',
+            '$ne':'<>',
+            '$eq':'=',
+            '$gte':'>=',
+            '$lte':'<='
+        };
         for(const q in hv){
             if(p.includes(q)){
                 for(const v in hv[q]){
-                    if(v.indexOf('.')>0){
-                        h.push(`${q.replace('$', '')}(${v}) = ?`);
+                    if(typeof hv[q][v] == 'object'){
+                        for(const op in hv[q][v]){
+                            if(v.indexOf('.')>0){
+                                h.push(`${q.replace('$', '')}(${v}) ${operators[op]} ?`);
+                            }else{
+                                h.push(`${q.replace('$', '')}(${this.table}.${v}) ${operators[op]} ?`);
+                            }
+                            this.params.push(hv[q][v][op]);
+                        }
                     }else{
-                        h.push(`${q.replace('$', '')}(${this.table}.${v}) = ?`);
+                        if(v.indexOf('.')>0){
+                            h.push(`${q.replace('$', '')}(${v}) = ?`);
+                        }else{
+                            h.push(`${q.replace('$', '')}(${this.table}.${v}) = ?`);
+                        }
+                        this.params.push(hv[q][v]);
                     }
-                    this.params.push(hv[q][v]);
                 }
             }
         }
