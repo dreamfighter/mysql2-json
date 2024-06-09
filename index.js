@@ -495,7 +495,19 @@ let Query = class{
     }
 
     delete(callback){
-        return this.deleteQ(callback);
+        if(callback) {
+            return this.deleteQ(callback);
+        }else{
+            return new Promise((resolve,reject)=>{
+                this.deleteQ((error,results)=>{
+                    if(error){
+                        reject(error);
+                    }else{
+                        resolve(results);
+                    }
+                });
+            });
+        }
     }
 
     insertQ(data,callback){
