@@ -376,19 +376,21 @@ let Query = class{
 
     sort(s){
         let ss = [];
-        for(const q in s){
-            if(s[q] === 1){
-                if(q.indexOf('.')>0){
+        for (const q in s) {
+            if (s[q] === 1) {
+                if (q.indexOf('.') > 0) {
                     ss.push(`${q} ASC`);
-                }else{
+                } else {
                     ss.push(`${this.table}.${q} ASC`);
                 }
-            }else if( s[q] == -1){
-                if(q.indexOf('.')>0){
+            } else if (s[q] === -1) {
+                if (q.indexOf('.') > 0) {
                     ss.push(`${q} DESC`);
-                }else{
+                } else {
                     ss.push(`${this.table}.${q} DESC`);
                 }
+            }else{
+                ss.push(`${q} ${s[q]}`);
             }
         }
         this.srt = `ORDER BY ${ss.join(',')}`;
