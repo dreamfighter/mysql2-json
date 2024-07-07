@@ -251,7 +251,7 @@ let Query = class{
                         func(selection[q],'AND', 'AND');
                     }
                 }else if(selection[q] != null && typeof selection[q] == 'object' &&
-                    ("$in" in selection[q] || "$nin" in selection[q] || "$gt" in selection[q] || "$lt" in selection[q] || "$gte" in selection[q] || "$lte" in selection[q])){
+                    ("$ref" in selection[q] || "$in" in selection[q] || "$nin" in selection[q] || "$gt" in selection[q] || "$lt" in selection[q] || "$gte" in selection[q] || "$lte" in selection[q])){
                     if(selection[q].$in){
                         var $in = selection[q].$in.map(d=>{
                             params.push(d);
@@ -262,8 +262,7 @@ let Query = class{
                         }else{
                             wh = `${wh} ${op} ${table}.${q} IN (${$in}) `;
                         }
-                    }
-                    if(selection[q].$nin){
+                    }else if(selection[q].$nin){
                         const $nin = selection[q].$nin.map(d => {
                             params.push(d);
                             return '?';
@@ -273,9 +272,14 @@ let Query = class{
                         }else{
                             wh = `${wh} ${op} ${table}.${q} NOT IN (${$nin}) `;
                         }
-                    }
-
-                    if(selection[q].$gt){
+                    }else if(selection[q].$ref){
+                        let ref = selection[q].$ref;
+                        if(q.indexOf('.')>0){
+                            wh = `${wh} ${op} ${q} = ${ref} `;
+                        }else{
+                            wh = `${wh} ${op} ${table}.${q} = ${ref} `;
+                        }
+                    }else if(selection[q].$gt){
                         //console.log(selection[q]);
                         var $gt = selection[q].$gt;
                         params.push($gt);
@@ -284,9 +288,7 @@ let Query = class{
                         }else{
                             wh = `${wh} ${op} ${table}.${q} > ? `;
                         }
-                    }
-
-                    if(selection[q].$gte){
+                    }else if(selection[q].$gte){
                         //console.log(selection[q]);
                         var $gt = selection[q].$gte;
                         params.push($gt);
@@ -295,9 +297,7 @@ let Query = class{
                         }else{
                             wh = `${wh} AND ${table}.${q} >= ? `;
                         }
-                    }
-
-                    if(selection[q].$lt){
+                    }else if(selection[q].$lt){
                         var $lt = selection[q].$lt
                         params.push($lt);
                         if(q.indexOf('.')>0){
@@ -305,9 +305,7 @@ let Query = class{
                         }else{
                             wh = `${wh} AND ${table}.${q} < ? `;
                         }
-                    }
-
-                    if(selection[q].$lte){
+                    }else if(selection[q].$lte){
                         var $lt = selection[q].$lte
                         params.push($lt);
                         if(q.indexOf('.')>0){
