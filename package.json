@@ -1,6 +1,6 @@
 {
   "name": "mysql2-json-sql",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "The idea is migrating from nosql db to relational db without any changes,\n using json as query and result",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "database"
   ],
   "dependencies": {
-    "mysql2": "^3.9.7",
+    "mysql2": "^3.11.3",
     "lodash": "^4.17.20"
   },
   "author": "Fitra Adinugraha <fitra.adinugraha@gmail.com>",
