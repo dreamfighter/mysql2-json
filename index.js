@@ -907,7 +907,10 @@ module.exports = (conn, table) => {
 
         db.tables = async function(){
             const connPromise = connDB.promise()
-            const [rows,fields] = await connPromise.query('SHOW TABLES');
+            const result = await Promise.all([
+                connPromise.query('SHOW TABLES')
+            ]);
+            const [rows,fields] = result[0];
 
             rows.map(d=> {
                 db[d[fields[0].name]] = new smt(connDB, d[fields[0].name]);
