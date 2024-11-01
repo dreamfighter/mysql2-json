@@ -482,7 +482,7 @@ let Query = class{
                     }else{
                         resolve(results);
                     }
-                    
+
                 });
             });
         }
@@ -499,7 +499,7 @@ let Query = class{
                     }else{
                         resolve(results);
                     }
-                    
+
                 });
             });
         }
@@ -557,7 +557,7 @@ let Query = class{
             console.log(q);
             console.log(values);
         }
-        
+
         let c = callback;
         return this.conn.query(q, values,(error, results) => {
             if(error){
@@ -568,6 +568,94 @@ let Query = class{
             c(error,results,data);
         });
         //});
+    }
+
+    async insertAsync(data){
+        const keys = [];
+        const values = [];
+        const questionMark = [];
+
+        var q = "";
+        if(Array.isArray(data)){
+            const vals = [];
+            for(const v in data[0]){
+                keys.push(v);
+            }
+            data.map(d=>{
+                const valInside = [];
+                for(const v in d){
+                    valInside.push(d[v]);
+                }
+                vals.push(valInside);
+            });
+            values.push(vals);
+            //console.log(this);
+            q = `INSERT INTO ${this.table} (${keys.join(',')}) VALUES ?`;
+        }else{
+            for(const v in data){
+                keys.push(v);
+                values.push(data[v]);
+                questionMark.push('?');
+            }
+            //console.log(this);
+            q = `INSERT INTO ${this.table} (${keys.join(',')}) VALUES (${questionMark.join(',')})`;
+        }
+        //this.conn.getConnection(function(err, conn) {
+
+        if(process.env.LOGGING === 'info'){
+            console.log(q);
+            console.log(values);
+        }
+
+        try{
+            let results = await this.conn.query(q, values);
+            data._id = results.insertId;
+            return data;
+        }catch (e) {
+            return error;
+        }
+    }
+
+    async updateAsync(data){
+        const keys = [];
+        const sets = [];
+        const values = [];
+        if(data['$set']){
+            for(const v in data['$set']){
+                let set = `${v}=?`;
+                sets.push(set);
+                values.push(data['$set'][v]);
+            }
+        }else{
+            for(const v in data){
+                let set = `${v}=?`;
+                sets.push(set);
+                values.push(data[v]);
+            }
+        }
+
+        for(const p in this.params){
+            //console.log(p);
+            if(p === 'groupBy'){
+                continue;
+            }
+            values.push(this.params[p]);
+        }
+
+
+        let q = `UPDATE ${this.table} SET ${sets.join(',')} ${this.where}`;
+        //this.conn.getConnection(function(err, conn) {
+        if(process.env.LOGGING === 'info'){
+            console.log(q);
+            console.log(values);
+        }
+
+        try{
+            let results = await this.conn.query(q, values);
+            return data;
+        }catch (e) {
+            return error;
+        }
     }
 
     updateQ(data,callback){
@@ -676,7 +764,7 @@ let Query = class{
                         console.log(err);
                         return callback(err,0);
                     }
-    
+
                 });
             }else if(_f){
                 return this.conn.query(q,p, (err,result)=>{
@@ -701,9 +789,9 @@ let Query = class{
                         console.log(err);
                         return callback(err,{});
                     }
-    
+
                 });
-    
+
             }
         }else{
             return new Promise((resolve,reject)=>{
@@ -715,7 +803,7 @@ let Query = class{
                             console.log(err);
                             return reject(err);
                         }
-        
+
                     });
                 }else if(_f){
                     return this.conn.query(q,p, (err,result)=>{
@@ -740,13 +828,13 @@ let Query = class{
                             console.log(err);
                             return reject(err);
                         }
-        
+
                     });
-        
+
                 }
             });
         }
-        
+
     }
 }
 
@@ -800,6 +888,10 @@ let smt = class{
         return new Query(this.conn,this.table).insert(data,callback);
     }
 
+    insertAsync(data){
+        return new Query(this.conn,this.table).insertAsync(data);
+    }
+
     delete(selection,callback){
         const sel = _.cloneDeep(selection);
         return new Query(this.conn,this.table).select(sel).delete(callback);
@@ -813,6 +905,11 @@ let smt = class{
         return new Query(this.conn,this.table).select(sel).update(data,callback);
     }
 
+    updateAsync(data){
+        const sel = _.cloneDeep(selection);
+        return new Query(this.conn,this.table).select(sel).updateAsync(data);
+    }
+
     query(sql,params){
         return new Promise((resolve, reject) => {
             this.conn.query(sql,params, (err,result)=>{
@@ -823,6 +920,33 @@ let smt = class{
                 }
             });
         });
+    }
+
+
+    async asyncTransaction(trx){
+        const promisePool = this.conn.promise();
+
+        //const tableName = this.table;
+        let connn = await promisePool.getConnection();
+        try {
+            await connn.beginTransaction();
+            const tables = {};
+            for(const t in datasource[config.database]){
+                tables[t] = new smt(connn, t);
+            }
+            console.log('tables',tables);
+            await trx(connn,tables);
+            await connn.commit();
+            console.log('committed!');
+
+            return null;
+        }
+        catch (error) {
+            await connn.rollback();
+            console.log('rollback!');
+            promisePool.releaseConnection();
+            return error;
+        }
     }
 
     transaction(trx,clbk){
@@ -884,9 +1008,11 @@ function format(data){
 }
 
 const datasource = {};
+let config = {};
 module.exports.datasource = datasource;
 module.exports = (conn, table) => {
     if(table){
+        config = conn.config;
         let dbStr = conn.config.connectionConfig;
         if(conn.config.connectionConfig){
             dbStr = conn.config.connectionConfig.database;
@@ -904,6 +1030,7 @@ module.exports = (conn, table) => {
     }else{
         const db = {};
         const connDB = mysql.createPool(conn);
+        config = conn;
 
         db.tables = async function(){
             const connPromise = connDB.promise()
