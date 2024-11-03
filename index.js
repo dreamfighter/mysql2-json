@@ -942,7 +942,7 @@ let smt = class{
         }
         catch (error) {
             await connn.rollback();
-            console.log('rollback!');
+            console.log('rollback!',error);
             promisePool.releaseConnection();
             return error;
         }
