@@ -934,7 +934,6 @@ let smt = class{
             for(const t in datasource[config.database]){
                 tables[t] = new smt(connn, t);
             }
-            console.log('tables',tables);
             await trx(connn,tables);
             await connn.commit();
             console.log('committed!');
