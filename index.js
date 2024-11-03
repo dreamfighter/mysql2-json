@@ -905,7 +905,7 @@ let smt = class{
         return new Query(this.conn,this.table).select(sel).update(data,callback);
     }
 
-    updateAsync(data){
+    updateAsync(selection,data){
         const sel = _.cloneDeep(selection);
         return new Query(this.conn,this.table).select(sel).updateAsync(data);
     }
