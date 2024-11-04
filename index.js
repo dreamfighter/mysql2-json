@@ -607,13 +607,9 @@ let Query = class{
             console.log(values);
         }
 
-        try{
-            let results = await this.conn.query(q, values);
-            data._id = results.insertId;
-            return data;
-        }catch (e) {
-            return error;
-        }
+        let results = await this.conn.query(q, values);
+        data._id = results.insertId;
+        return data;
     }
 
     async updateAsync(data){
@@ -650,12 +646,7 @@ let Query = class{
             console.log(values);
         }
 
-        try{
-            let results = await this.conn.query(q, values);
-            return data;
-        }catch (e) {
-            return error;
-        }
+        return await this.conn.query(q, values);
     }
 
     updateQ(data,callback){
