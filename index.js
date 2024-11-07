@@ -888,7 +888,7 @@ let smt = class{
     }
 
     insertTrx(data){
-        return new Query(this.conn,this.table,this.column).insertAsync(data);
+        return new Query(this.conn,this.table,this.column).insertTrx(data);
     }
 
     delete(selection,callback){
@@ -906,7 +906,7 @@ let smt = class{
 
     updateTrx(selection,data){
         const sel = _.cloneDeep(selection);
-        return new Query(this.conn,this.table,this.column).select(sel).updateAsync(data);
+        return new Query(this.conn,this.table,this.column).select(sel).updateTrx(data);
     }
 
     query(sql,params){
