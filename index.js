@@ -2,7 +2,7 @@ const _ = require('lodash');
 const mysql = require('mysql2');
 
 let Query = class{
-    constructor(conn, table) {
+    constructor(conn, table, columns) {
         this.conn = conn;
         this.table = table;
         this._count = false;
@@ -19,6 +19,7 @@ let Query = class{
         this.params = [];
         this.join_params = [];
         this.formating = null;
+        this.columns = columns;
     }
 
     count(selection){
@@ -71,6 +72,7 @@ let Query = class{
 
     projection(pro){
         const p = ['$max','$min','$sum','$avg','$count'];
+        let exclude = _.cloneDeep(this.columns);
         for(const q in pro){
             if(p.includes(q)){
                 for(const v in pro[q]){
@@ -98,12 +100,17 @@ let Query = class{
                     this._projection.push(`${this.table}.${q} ${pro[q]}`);
                 }
 
+            }else{
+                exclude = exclude.filter(d=>d!==q);
             }
+        }
+        if(this._projection.length===1 && this._projection[0]===`${this.table}.*`){
+            this._projection.push(...exclude);
         }
         if(this._projection[0]===`${this.table}.*`){
             this._projection.splice(0, 1)
         }
-
+        //console.log(this.columns);
         return this;
     }
 
@@ -830,10 +837,10 @@ let Query = class{
 }
 
 let smt = class{
-    constructor(conn, table, columns) {
+    constructor(conn, table, column) {
         this.conn = conn;
         this.table = table;
-        this.columns = columns;
+        this.column = column;
     }
 
     getConnection(){
@@ -843,9 +850,9 @@ let smt = class{
     find(selection,callback){
         const sel = _.cloneDeep(selection);
         if(callback){
-            return new Query(this.conn,this.table).select(sel).exec(callback);
+            return new Query(this.conn,this.table,this.column).select(sel).exec(callback);
         }else{
-            return new Query(this.conn,this.table).select(sel);
+            return new Query(this.conn,this.table,this.column).select(sel);
         }
 
     }
@@ -853,13 +860,13 @@ let smt = class{
     findOne(selection,callback){
         const sel = _.cloneDeep(selection);
         if(callback){
-            let q = new Query(this.conn,this.table).select(sel);
+            let q = new Query(this.conn,this.table,this.column).select(sel);
             q._findOne = 1;
             q._limit = `LIMIT 1`;
             q.exec(callback);
             return q;
         }else{
-            let q = new Query(this.conn,this.table).select(sel);
+            let q = new Query(this.conn,this.table,this.column).select(sel);
             q._findOne = 1;
             q._limit = `LIMIT 1`;
             return q;
@@ -870,23 +877,23 @@ let smt = class{
     count(selection,callback){
         const sel = _.cloneDeep(selection);
         if(callback){
-            return new Query(this.conn,this.table).count(sel).exec(callback);
+            return new Query(this.conn,this.table,this.column).count(sel).exec(callback);
         }else{
-            return new Query(this.conn,this.table).count(sel);
+            return new Query(this.conn,this.table,this.column).count(sel);
         }
     }
 
     insert(data,callback){
-        return new Query(this.conn,this.table).insert(data,callback);
+        return new Query(this.conn,this.table,this.column).insert(data,callback);
     }
 
     insertTrx(data){
-        return new Query(this.conn,this.table).insertTrx(data);
+        return new Query(this.conn,this.table,this.column).insertAsync(data);
     }
 
     delete(selection,callback){
         const sel = _.cloneDeep(selection);
-        return new Query(this.conn,this.table).select(sel).delete(callback);
+        return new Query(this.conn,this.table,this.column).select(sel).delete(callback);
     }
 
     update(selection,data,options,callback){
@@ -894,12 +901,12 @@ let smt = class{
         if(!callback){
             callback = options;
         }
-        return new Query(this.conn,this.table).select(sel).update(data,callback);
+        return new Query(this.conn,this.table,this.column).select(sel).update(data,callback);
     }
 
     updateTrx(selection,data){
         const sel = _.cloneDeep(selection);
-        return new Query(this.conn,this.table).select(sel).updateTrx(data);
+        return new Query(this.conn,this.table,this.column).select(sel).updateAsync(data);
     }
 
     query(sql,params){
@@ -1030,8 +1037,14 @@ module.exports = (conn, table) => {
             ]);
             const [rows,fields] = result[0];
 
-            rows.map(d=> {
-                db[d[fields[0].name]] = new smt(connDB, d[fields[0].name]);
+            const columns = await Promise.all(rows.map(d=> {
+                const tableName = d[fields[0].name];
+                return connPromise.query(`SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '${tableName}'`)
+            }));
+
+            rows.map((d,i)=> {
+                const tableName = d[fields[0].name];
+                db[tableName] = new smt(connDB, tableName, columns[i][0].map(c=>c.COLUMN_NAME));
             });
             return db;
         }
