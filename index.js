@@ -84,7 +84,7 @@ let Query = class{
                         this._projection.push(`${q.replace('$', '')}(${this.table}.${v}) ${v}`);
                     }
                 }
-            }else if(pro[q] == 1){
+            }else if(pro[q] === 1){
                 if(q.indexOf('.')>0){
                     this._projection.push(`${q} '${q}'`);
                 }else{
@@ -570,7 +570,7 @@ let Query = class{
         //});
     }
 
-    async insertAsync(data){
+    async insertTrx(data){
         const keys = [];
         const values = [];
         const questionMark = [];
@@ -612,7 +612,7 @@ let Query = class{
         return data;
     }
 
-    async updateAsync(data){
+    async updateTrx(data){
         const keys = [];
         const sets = [];
         const values = [];
@@ -830,9 +830,10 @@ let Query = class{
 }
 
 let smt = class{
-    constructor(conn, table) {
+    constructor(conn, table, columns) {
         this.conn = conn;
         this.table = table;
+        this.columns = columns;
     }
 
     getConnection(){
@@ -879,8 +880,8 @@ let smt = class{
         return new Query(this.conn,this.table).insert(data,callback);
     }
 
-    insertAsync(data){
-        return new Query(this.conn,this.table).insertAsync(data);
+    insertTrx(data){
+        return new Query(this.conn,this.table).insertTrx(data);
     }
 
     delete(selection,callback){
@@ -896,9 +897,9 @@ let smt = class{
         return new Query(this.conn,this.table).select(sel).update(data,callback);
     }
 
-    updateAsync(selection,data){
+    updateTrx(selection,data){
         const sel = _.cloneDeep(selection);
-        return new Query(this.conn,this.table).select(sel).updateAsync(data);
+        return new Query(this.conn,this.table).select(sel).updateTrx(data);
     }
 
     query(sql,params){
