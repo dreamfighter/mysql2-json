@@ -101,11 +101,11 @@ let Query = class{
                 }
 
             }else{
-                exclude = exclude.filter(d=>d!==q && `${this.table}.${d}`!==q).map(d=>`${this.table}.${d}`);
+                exclude = exclude.filter(d=>d!==q && `${this.table}.${d}`!==q);
             }
         }
         if(this._projection.length===1 && this._projection[0]===`${this.table}.*`){
-            this._projection.push(...exclude);
+            this._projection.push(...exclude.map(d=>`${this.table}.${d}`));
         }
         if(this._projection[0]===`${this.table}.*`){
             this._projection.splice(0, 1)
