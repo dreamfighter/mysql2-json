@@ -86,7 +86,7 @@ let Query = class{
                         this._projection.push(`${q.replace('$', '')}(${this.table}.${v}) ${v}`);
                     }
                 }
-            }else if(pro[q] == 1){
+            }else if(pro[q] === 1){
                 if(q.indexOf('.')>0){
                     this._projection.push(`${q} '${q}'`);
                 }else{
@@ -577,7 +577,7 @@ let Query = class{
         //});
     }
 
-    async insertAsync(data){
+    async insertTrx(data){
         const keys = [];
         const values = [];
         const questionMark = [];
@@ -614,12 +614,12 @@ let Query = class{
             console.log(values);
         }
 
-        let results = await this.conn.promise().query(q, values);
+        let results = await this.conn.query(q, values);
         data._id = results.insertId;
         return data;
     }
 
-    async updateAsync(data){
+    async updateTrx(data){
         const keys = [];
         const sets = [];
         const values = [];
@@ -653,7 +653,7 @@ let Query = class{
             console.log(values);
         }
 
-        return await this.conn.promise().query(q, values);
+        return await this.conn.query(q, values);
     }
 
     updateQ(data,callback){
@@ -887,8 +887,8 @@ let smt = class{
         return new Query(this.conn,this.table,this.column).insert(data,callback);
     }
 
-    insertAsync(data){
-        return new Query(this.conn,this.table,this.column).insertAsync(data);
+    insertTrx(data){
+        return new Query(this.conn,this.table,this.column).insertTrx(data);
     }
 
     delete(selection,callback){
@@ -904,9 +904,9 @@ let smt = class{
         return new Query(this.conn,this.table,this.column).select(sel).update(data,callback);
     }
 
-    updateAsync(selection,data){
+    updateTrx(selection,data){
         const sel = _.cloneDeep(selection);
-        return new Query(this.conn,this.table,this.column).select(sel).updateAsync(data);
+        return new Query(this.conn,this.table,this.column).select(sel).updateTrx(data);
     }
 
     query(sql,params){
