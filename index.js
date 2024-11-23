@@ -101,7 +101,7 @@ let Query = class{
                 }
 
             }else{
-                exclude = exclude.filter(d=>d!==q);
+                exclude = exclude.filter(d=>d!==q && `${this.table}.${d}`!==q).map(d=>`${this.table}.${d}`);
             }
         }
         if(this._projection.length===1 && this._projection[0]===`${this.table}.*`){
@@ -143,7 +143,7 @@ let Query = class{
         if(proj){
             //var p = [];
             for(const q in proj){
-                if(proj[q] == 1){
+                if(proj[q] === 1){
                     this._projection.push(`${alias}.${q} '${alias}.${q}'`);
                 }else if(proj[q] !== 0){
                     this._projection.push(`${alias}.${q} '${proj[q]}'`);
